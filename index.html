@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeathClick</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #000;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 100;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .site-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 32px;
+            color: #00ff88;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+
+        .site-subtitle {
+            font-size: 13px;
+            color: #666;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .twitter-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #444;
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.3s ease;
+        }
+
+        .twitter-link:hover {
+            color: #00ff88;
+        }
+
+        .wallet-connect-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid #222;
+            color: #666;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+
+        .wallet-connect-btn:hover {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .wallet-connect-btn.connected {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 60px;
+            padding: 120px 20px 80px;
+        }
+
+        .axe-section {
+            position: relative;
+            cursor: pointer;
+            animation: levitate 3s ease-in-out infinite;
+        }
+
+        @keyframes levitate {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        .axe-section:hover {
+            animation: levitateHover 3s ease-in-out infinite;
+        }
+
+        @keyframes levitateHover {
+            0%, 100% {
+                transform: translateY(-5px) scale(1.05);
+            }
+            50% {
+                transform: translateY(-20px) scale(1.05);
+            }
+        }
+
+        .axe-section:hover .axe-img {
+            filter: drop-shadow(0 0 40px rgba(214, 200, 5, 0.6));
+        }
+
+        .arrow-indicator {
+            position: absolute;
+            left: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #00ff88;
+            font-size: 30px;
+            animation: arrowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes arrowPulse {
+            0%, 100% {
+                opacity: 0.3;
+                transform: translateY(-50%) translateX(0);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-50%) translateX(-5px);
+            }
+        }
+
+        .axe-img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 20px 214, 200, 5, 0.6);
+            transition: all 0.4s ease;
+        }
+
+        .axe-section.executing .axe-img {
+            animation: executeRotate 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        @keyframes executeRotate {
+            0% {
+                transform: rotate(0deg) scale(1);
+                filter: drop-shadow(0 0 20px rgba(255, 0, 51, 0.3));
+            }
+            50% {
+                transform: rotate(180deg) scale(1.15);
+                filter: drop-shadow(0 0 60px rgba(255, 0, 51, 1)) drop-shadow(0 0 100px rgba(0, 255, 136, 0.4));
+            }
+            100% {
+                transform: rotate(360deg) scale(1);
+                filter: drop-shadow(0 0 80px rgba(255, 0, 51, 0.8));
+            }
+        }
+
+        .terminal-section {
+            width: 700px;
+            max-width: 90vw;
+            min-height: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(5, 5, 5, 0.9);
+            border: 1px solid #1a1a1a;
+            padding: 30px;
+            position: relative;
+        }
+
+        .terminal-section::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-section::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+
+        .terminal-section::-webkit-scrollbar-thumb {
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+
+        .terminal-section::-webkit-scrollbar-thumb:hover {
+            background: #2a2a2a;
+        }
+
+        .terminal-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ff88, transparent);
+            opacity: 0;
+        }
+
+        .terminal-section.active::before {
+            animation: scanline 2s ease-out;
+        }
+
+        @keyframes scanline {
+            0% {
+                opacity: 0;
+                transform: translateY(0);
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(300px);
+            }
+        }
+
+        .terminal-header {
+            color: #333;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            font-family: 'Bebas Neue', sans-serif;
+        }
+
+        .terminal-section.active .terminal-header {
+            color: #00ff88;
+        }
+
+        .terminal-output {
+            min-height: 200px;
+        }
+
+        .terminal-line {
+            color: #00ff88;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 6px;
+            opacity: 0;
+            font-weight: 400;
+        }
+
+        .terminal-line.visible {
+            animation: lineAppear 0.2s ease-out forwards;
+        }
+
+        @keyframes lineAppear {
+            from { 
+                opacity: 0; 
+                transform: translateX(-5px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(0);
+            }
+        }
+
+        .terminal-line.dim {
+            color: #444;
+        }
+
+        .wallet-address {
+            color: #00ff88;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin: 15px 0;
+            word-break: break-all;
+        }
+
+        .execution-status {
+            color: #ff0033;
+            font-size: 16px;
+            margin-top: 30px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            opacity: 0;
+            font-family: 'Bebas Neue', sans-serif;
+        }
+
+        .execution-status.visible {
+            animation: statusAppear 0.8s ease-out forwards;
+        }
+
+        @keyframes statusAppear {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .replay-btn {
+            margin-top: 25px;
+            padding: 12px 30px;
+            background: transparent;
+            border: 1px solid #222;
+            color: #444;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 13px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .replay-btn.visible {
+            animation: statusAppear 0.8s ease-out 0.3s forwards;
+        }
+
+        .replay-btn:hover {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .flash-overlay.active {
+            animation: flashPulse 0.2s ease-out;
+        }
+
+        @keyframes flashPulse {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.8; }
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 15px;
+            width: 100%;
+            text-align: center;
+            color: #1a1a1a;
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'Bebas Neue', sans-serif;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .arrow-indicator {
+                left: -40px;
+                font-size: 20px;
+            }
+
+            .container {
+                gap: 40px;
+            }
+
+            .axe-img {
+                width: 150px;
+                height: 150px;
+            }
+
+            .terminal-section {
+                width: 90vw;
+                padding: 20px;
+            }
+
+            .terminal-line {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="site-title">DEATHCLICK</div>
+            <div class="site-subtitle">One click. One exit. Terminate the weak in the trenches.</div>
+            <a href="https://x.com/deathclick" target="_blank" class="twitter-link">
+                <span>→</span> Follow on Twitter
+            </a>
+        </div>
+        <button class="wallet-connect-btn" id="walletBtn">Connect Phantom</button>
+    </div>
+
+    <div class="container">
+        <div class="axe-section" id="axeSection">
+            <div class="arrow-indicator">→</div>
+            <img src="sdsd.png" alt="Axe" class="axe-img" id="axeImg">
+        </div>
+
+        <div class="terminal-section" id="terminalSection">
+            <div class="terminal-header">EXECUTION TERMINAL</div>
+            <div class="terminal-output" id="terminalOutput"></div>
+        </div>
+    </div>
+
+    <div class="flash-overlay" id="flashOverlay"></div>
+
+    <footer class="footer">© 2025 DEATHCLICK — ONE CLICK. ONE FATE.</footer>
+
+    <script>
+        const axeSection = document.getElementById('axeSection');
+        const terminalSection = document.getElementById('terminalSection');
+        const terminalOutput = document.getElementById('terminalOutput');
+        const flashOverlay = document.getElementById('flashOverlay');
+        const walletBtn = document.getElementById('walletBtn');
+
+        let isExecuting = false;
+        let walletConnected = false;
+
+        // Phantom Wallet Connection
+        walletBtn.addEventListener('click', async () => {
+            if (walletConnected) return;
+
+            try {
+                const provider = window.phantom?.solana;
+                
+                if (!provider) {
+                    alert('Phantom wallet not found! Please install it from phantom.app');
+                    return;
+                }
+
+                await provider.connect();
+                walletConnected = true;
+                walletBtn.textContent = 'Wallet Connected';
+                walletBtn.classList.add('connected');
+            } catch (err) {
+                console.error('Wallet connection failed:', err);
+            }
+        });
+
+        function generateSolanaAddress() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789';
+            let address = '';
+            for (let i = 0; i < 44; i++) {
+                address += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return address;
+        }
+
+        function generateRandomHex() {
+            return Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+        }
+
+        function generateRandomHash() {
+            const chars = '0123456789abcdef';
+            let hash = '';
+            for (let i = 0; i < 64; i++) {
+                hash += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return hash;
+        }
+
+        const processes = [
+            'solana-validator', 'rpc-client', 'gossip-service', 'tpu-forward',
+            'block-producer', 'vote-signer', 'ledger-cleanup', 'snapshot-packager',
+            'turbine-service', 'repair-service', 'shred-fetch', 'banking-stage'
+        ];
+
+        const operations = [
+            'Processing slot', 'Verifying signature', 'Validating transaction',
+            'Confirming block', 'Computing hash', 'Syncing ledger',
+            'Broadcasting vote', 'Fetching accounts', 'Parsing instruction',
+            'Decoding program', 'Checking balance', 'Scanning mempool'
+        ];
+
+        const ipAddresses = () => {
+            return `${Math.floor(Math.random()*256)}.${Math.floor(Math.random()*256)}.${Math.floor(Math.random()*256)}.${Math.floor(Math.random()*256)}`;
+        };
+
+        function generateMatrixLine() {
+            const types = ['process', 'network', 'transaction', 'system', 'rpc'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            switch(type) {
+                case 'process':
+                    const proc = processes[Math.floor(Math.random() * processes.length)];
+                    const pid = Math.floor(Math.random() * 65535);
+                    return `[${pid}] ${proc}: ${operations[Math.floor(Math.random() * operations.length)]} #${Math.floor(Math.random() * 999999)}`;
+                
+                case 'network':
+                    return `TCP ${ipAddresses()}:${8000 + Math.floor(Math.random()*2000)} -> ${ipAddresses()}:${8000 + Math.floor(Math.random()*2000)} [${Math.floor(Math.random()*9999)}ms]`;
+                
+                case 'transaction':
+                    const sig = generateRandomHash().substring(0, 16);
+                    const slot = 200000000 + Math.floor(Math.random() * 10000000);
+                    return `TX ${sig}... | slot: ${slot} | fee: ${Math.floor(Math.random()*5000)} lamports`;
+                
+                case 'system':
+                    const mem = Math.floor(Math.random() * 100);
+                    const cpu = Math.floor(Math.random() * 100);
+                    return `sys.monitor: CPU ${cpu}% | MEM ${mem}% | NET ${Math.floor(Math.random()*1000)}kb/s`;
+                
+                case 'rpc':
+                    const methods = ['getAccountInfo', 'getBalance', 'getBlock', 'getTransaction', 'sendTransaction', 'simulateTransaction'];
+                    const method = methods[Math.floor(Math.random() * methods.length)];
+                    return `RPC ${method}() -> ${ipAddresses()} [${Math.floor(Math.random()*500)}ms] status:200`;
+            }
+        }
+
+        axeSection.addEventListener('click', () => {
+            if (isExecuting) return;
+            isExecuting = true;
+
+            // Trigger axe rotation
+            axeSection.classList.add('executing');
+
+            // Flash at midpoint
+            setTimeout(() => {
+                flashOverlay.classList.add('active');
+                setTimeout(() => flashOverlay.classList.remove('active'), 200);
+            }, 600);
+
+            // Start terminal sequence
+            setTimeout(() => {
+                terminalSection.classList.add('active');
+                executeSequence();
+            }, 800);
+        });
+
+        function executeSequence() {
+            const walletAddress = generateSolanaAddress();
+            terminalOutput.innerHTML = '';
+
+            // Phase 1: Initial boot (0-20s)
+            const phase1Lines = [
+                '> SYSTEM INITIALIZED...',
+                '> LOADING DEATHCLICK PROTOCOL v3.7.2',
+                '> ESTABLISHING SECURE CONNECTION...',
+                '> CONNECTION ESTABLISHED [OK]'
+            ];
+
+            let currentDelay = 0;
+            phase1Lines.forEach(text => {
+                setTimeout(() => addLine(text), currentDelay);
+                currentDelay += 800;
+            });
+
+            // Phase 2: Matrix rain effect (20s-90s)
+            const matrixStartDelay = currentDelay + 1000;
+            const matrixDuration = 70000; // 70 seconds
+            const matrixInterval = 150; // New line every 150ms
+
+            for (let i = 0; i < matrixDuration / matrixInterval; i++) {
+                setTimeout(() => {
+                    addLine(generateMatrixLine(), true);
+                }, matrixStartDelay + (i * matrixInterval));
+            }
+
+            // Phase 3: Target acquisition (90s-120s)
+            const phase3Start = matrixStartDelay + matrixDuration;
+            const phase3Lines = [
+                '> SCANNING BLOCKCHAIN NETWORKS...',
+                '> SOLANA MAINNET DETECTED',
+                '> ANALYZING TRANSACTION PATTERNS...',
+                '> PATTERN MATCH FOUND',
+                '> INITIATING TRENCHER PROTOCOL...',
+                '> LOADING EXECUTION PARAMETERS...',
+                '> CALIBRATING QUANTUM VECTORS...',
+                '> TARGETING SEQUENCE ACTIVE'
+            ];
+
+            phase3Lines.forEach((text, index) => {
+                setTimeout(() => addLine(text), phase3Start + (index * 1200));
+            });
+
+            // Phase 4: Execution and reveal (120s-180s)
+            const phase4Start = phase3Start + (phase3Lines.length * 1200) + 2000;
+            const phase4Lines = [
+                '> TARGET LOCKED',
+                '> EXECUTING TRENCHER PROTOCOL...',
+                '> ████████████████ 100%',
+                '> A TRENCHER HAS BEEN EXECUTED',
+                '> RETRIEVING WALLET DATA...',
+                '> DECRYPTING BLOCKCHAIN SIGNATURE...',
+                '> WALLET IDENTIFIED:'
+            ];
+
+            phase4Lines.forEach((text, index) => {
+                setTimeout(() => addLine(text), phase4Start + (index * 1500));
+            });
+
+            // Show wallet address
+            setTimeout(() => {
+                addLine(`<span class="wallet-address">${walletAddress}</span>`);
+                
+                setTimeout(() => {
+                    const statusDiv = document.createElement('div');
+                    statusDiv.className = 'execution-status';
+                    statusDiv.textContent = 'EXECUTION COMPLETE.';
+                    terminalOutput.appendChild(statusDiv);
+                    
+                    requestAnimationFrame(() => {
+                        statusDiv.classList.add('visible');
+                    });
+
+                    const replayBtn = document.createElement('button');
+                    replayBtn.className = 'replay-btn';
+                    replayBtn.textContent = 'EXECUTE AGAIN';
+                    terminalOutput.appendChild(replayBtn);
+                    
+                    requestAnimationFrame(() => {
+                        replayBtn.classList.add('visible');
+                    });
+
+                    replayBtn.addEventListener('click', resetExperience);
+                }, 2000);
+            }, phase4Start + (phase4Lines.length * 1500) + 1000);
+        }
+
+        function addLine(text, isDim = false) {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'terminal-line' + (isDim ? ' dim' : '');
+            lineDiv.innerHTML = text;
+            terminalOutput.appendChild(lineDiv);
+            
+            requestAnimationFrame(() => {
+                lineDiv.classList.add('visible');
+            });
+
+            // Auto-scroll to bottom
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+
+        function resetExperience() {
+            terminalSection.classList.remove('active');
+            axeSection.classList.remove('executing');
+            terminalOutput.innerHTML = '';
+            isExecuting = false;
+        }
+    </script>
+</body>
+</html>
